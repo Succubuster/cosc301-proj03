@@ -133,6 +133,7 @@ setupkvm(void)
 
   if((pgdir = (pde_t*)kalloc()) == 0)
     return 0;
+  //cprintf("Pgdir: %d\n", *pgdir);
   memset(pgdir, 0, PGSIZE);
   if (p2v(PHYSTOP) > (void*)DEVSPACE)
     panic("PHYSTOP too high");
@@ -202,7 +203,7 @@ loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
   if((uint) addr % PGSIZE != 0)
     panic("loaduvm: addr must be page aligned");
   for(i = 0; i < sz; i += PGSIZE){
-    if((pte = walkpgdir(pgdir, addr+i, 0)) == 0)
+    if((pte = walkpgdir(pgdir, addr+i, 0)) == 0) // 
       panic("loaduvm: address should exist");
     pa = PTE_ADDR(*pte);
     if(sz - i < PGSIZE)
@@ -221,7 +222,7 @@ int
 allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 {
   char *mem;
-  uint a;
+  uint a; 
 
   if(newsz >= KERNBASE)
     return 0;
@@ -314,9 +315,9 @@ copyuvm(pde_t *pgdir, uint sz)
   uint pa, i, flags;
   char *mem;
 
-  if((d = setupkvm()) == 0)
+  if((d = setupkvm()) == 0) // change here??? CN
     return 0;
-  for(i = 0; i < sz; i += PGSIZE){
+  for(i = PGSIZE; i < sz; i += PGSIZE){
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
@@ -375,6 +376,34 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
     va = va0 + PGSIZE;
   }
   return 0;
+}
+
+void do_mprotect(struct proc *p, int addr, int len) {
+	uint vpn;
+    for (vpn = addr; vpn < addr+(len*PGSIZE); vpn += PGSIZE) {
+        pte_t *pte;
+        pde_t *pde = p->pgdir;
+        if ((pte = walkpgdir(pde, (void*)vpn, 0)) == 0) {
+            cprintf("VPN %x is not mapped\n", vpn);
+        } else {
+            //uint pfn = PTE_ADDR(*pte);
+            (*pte) &=  ~PTE_W; // switch off...
+        }
+    }
+}
+
+void do_munprotect(struct proc *p, int addr, int len) {
+	uint vpn;
+    for (vpn = addr; vpn < addr+(len*PGSIZE); vpn += PGSIZE) {
+        pte_t *pte;
+        pde_t *pde = p->pgdir;
+        if ((pte = walkpgdir(pde, (void*)vpn, 0)) == 0) {
+            cprintf("VPN %x is not mapped\n", vpn);
+        } else {
+            //uint pfn = PTE_ADDR(*pte);
+            (*pte) |= PTE_W; // switch on...
+        }
+    }
 }
 
 //PAGEBREAK!

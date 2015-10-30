@@ -27,9 +27,10 @@ main(int argc, char *argv[])
   char *brk = sbrk(0);
   sbrk(PGROUNDUP(brk) - (uint)brk);
   char *start = sbrk(0);
-
+	
   // should fail for address zero, which shouldn't be mapped in
   // the process any more because of part a of project
+  
   assert(mprotect(0, 1) == -1);
   assert(munprotect(0, 1) == -1);
 
@@ -73,4 +74,5 @@ main(int argc, char *argv[])
 
    printf(1, "TEST PASSED\n");
    exit();
+   return 0;
 }

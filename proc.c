@@ -26,6 +26,37 @@ pinit(void)
   initlock(&ptable.lock, "ptable");
 }
 
+int kern_mprotect(void * addr, int len) {
+	if ((uint)addr % PGSIZE != 0)
+		return -1;
+	//  another check needed: addr too large
+	if  ((uint)addr <= 0 || (uint)addr > proc->sz)
+		return -1;
+	if  (len <= 0 || (len*PGSIZE)+(int)addr > proc->sz)
+		return -1;
+
+	
+	acquire(&ptable.lock);
+    do_mprotect(proc, (int)addr, len);
+    release(&ptable.lock);
+    return 0;
+}
+
+int kern_munprotect(void * addr, int len) {
+	if ((int)addr % PGSIZE != 0)
+		return -1;
+	//  another check needed: addr too large
+	if  ((uint)addr <= 0 || (uint)addr > proc->sz)
+		return -1;
+	if  (len <= 0 || (len*PGSIZE)+(int)addr > proc->sz)
+		return -1;
+	
+	
+	acquire(&ptable.lock);
+    do_munprotect(proc, (int)addr, len);
+    release(&ptable.lock);
+    return 0;
+}
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize

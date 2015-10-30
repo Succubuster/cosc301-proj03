@@ -89,8 +89,10 @@ kalloc(void)
   r = kmem.freelist;
   if(r)
     kmem.freelist = r->next;
+    //cprintf("No Error???\n");
   if(kmem.use_lock)
     release(&kmem.lock);
+  //cprintf("In kalloc: %d %c %x\n",(char*)r,(char*)r,(char*)r);
   return (char*)r;
 }
 

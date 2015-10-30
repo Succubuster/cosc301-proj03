@@ -24,7 +24,7 @@ exec(char *path, char **argv)
     return -1;
   }
   ilock(ip);
-  pgdir = 0;
+  pgdir = 0; // starts on 0? CN
 
   // Check ELF header
   if(readi(ip, (char*)&elf, 0, sizeof(elf)) < sizeof(elf))
@@ -32,11 +32,11 @@ exec(char *path, char **argv)
   if(elf.magic != ELF_MAGIC)
     goto bad;
 
-  if((pgdir = setupkvm()) == 0)
+  if((pgdir = setupkvm()) == 0) // I changed here (thought: ignore 0 (error) and 1 (first page, which should be the NULL)
     goto bad;
-
+  
   // Load program into memory.
-  sz = 0;
+  sz = PGSIZE;
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
     if(readi(ip, (char*)&ph, off, sizeof(ph)) != sizeof(ph))
       goto bad;

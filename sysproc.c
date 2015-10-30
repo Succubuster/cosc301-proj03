@@ -89,3 +89,28 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int 
+sys_mprotect(void) 
+{
+  int l, p;
+  
+  if (argint(1, &l) < 0)
+  	return -1;
+  if (argint(0, &p) < 0) 
+  	return -1;
+ return kern_mprotect((void*)p,l);
+}
+
+int 
+sys_munprotect(void)
+{
+   int l, p;
+  
+  if (argint(1, &l) < 0)
+  	return -1;
+  if (argint(0, &p) < 0) 
+  	return -1;
+ return kern_munprotect((void*)p,l);
+}
+  
